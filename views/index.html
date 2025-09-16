@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>URL Shortener</title>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+
+<body>
+  <h1>Shorten a URL</h1>
+
+  <form id="shorten-form">
+    <label for="urlInput">Please type URL here</label><br />
+    <input type="text" id="urlInput" name="url" />
+    <button type="submit">Click here</button>
+  </form>
+
+  <!-- Success Message Container -->
+  <div id="shorten-result" style="margin-top: 20px; color: green;"></div>
+
+  <!-- Error Message Container -->
+  <div id="error-message" style="margin-top: 10px; color: red;"></div>
+
+  <hr />
+
+  <h1>Redirect using Short Code</h1>
+
+  <label for="shortCodeInput">Please enter short code</label><br />
+  <input type="text" id="shortCodeInput" name="shortCode" required />
+  <button id="redirect-btn">Go</button>
+
+</body>
+
+<script>
+  // Handle URL shortening
+  document.getElementById('shorten-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const longUrl = document.getElementById('urlInput').value;
+
+    document.getElementById('shorten-result').innerText = "";
+    document.getElementById('error-message').innerText = "";
+
+    if (!longUrl) {
+      document.getElementById('error-message').innerText = "Please enter a valid URL.";
+      return;
+    }
+
+    try {
+      const response = await axios.post('/shorten', { url: longUrl });
+
+      const resultDiv = document.getElementById('shorten-result');
+      resultDiv.innerHTML = `
+        <p><strong>Short URL Code: <span style="color:blue;">${response.data.shortCode}</span>
+        </strong >
+          <p>${response.data.message}</p>
+      `;
+    } catch (error) {
+      console.error("Error:", error);
+
+      const errorDiv = document.getElementById('error-message');
+
+      if (error.response && error.response.status === 429) {
+        errorDiv.innerText = "Too many attempts. Please try again later with a different URL.";
+      } else if (error.response && error.response.data && error.response.data.message) {
+        errorDiv.innerText = error.response.data.message;
+      } else {
+        errorDiv.innerText = "Something went wrong. Please try again.";
+      }
+    }
+  });
+
+  // Handle short code redirection
+  document.getElementById('redirect-btn').addEventListener('click', async function () {
+    const shortCode = document.getElementById('shortCodeInput').value.trim();
+    const errorDiv = document.getElementById('error-message');
+
+    errorDiv.innerText = "";
+    document.getElementById('shorten-result').innerText = "";
+
+    if (!shortCode) {
+      errorDiv.innerText = "Please enter a short code.";
+      return;
+    }
+    window.location.href = `/r/${shortCode}`
+  });
+</script>
+
+</html>
