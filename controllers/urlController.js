@@ -11,6 +11,7 @@ const getHomePage = async (req, res) => {
     const filePath = path.join(__dirname, '../views/index.html');
     res.status(200).sendFile(filePath);
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
